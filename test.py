@@ -2,32 +2,25 @@ import streamlit as st
 import pandas as pd
 
 # Function to find matches for shift swapping
-def find_matches(submissions):
+def find_matches(df):
     matches = []
-    user_ids = list(submissions.keys())
-    
-    # Iterate through each pair of users
-    for i in range(len(user_ids)):
-        for j in range(i + 1, len(user_ids)):
-            user1_id = user_ids[i]
-            user2_id = user_ids[j]
-            
-            user1_shifts = submissions[user1_id]
-            user2_shifts = submissions[user2_id]
-            
-            # Compare shifts between the current pair of users
-            for _, shift1 in user1_shifts.iterrows():
-                for _, shift2 in user2_shifts.iterrows():
-                    # Check if shifts match and the date is the same
-                    if (shift1['give_away'] in shift2.dropna().values and
-                        shift2['give_away'] in shift1.dropna().values and
-                        shift1['date'] == shift2['date']):
-                        # If there is a match, store the information
-                        matches.append((user1_id, user2_id, shift1['date'], shift1['give_away']))
-    return matches
 
-# Initialize an empty dictionary to store submitted data
-submissions = {}
+    # Iterate through each pair of employees
+    for i in range(len(df)):
+        for j in range(i + 1, len(df)):
+            # Get the shifts for each pair of employees
+            shift_employee1 = df.iloc[i]
+            shift_employee2 = df.iloc[j]
+
+            # Check if the shifts are on the same date
+            if shift_employee1['date'] == shift_employee2['date']:
+                # Check if any of the shifts of employee1 match with any of the shifts of employee2
+                if shift_employee1['give_away'] in shift_employee2[['can_take_early', 'can_take_morning', 'can_take_evening', 'can_take_night', 'can_take_rest']].values:
+                    if shift_employee2['give_away'] in shift_employee1[['can_take_early', 'can_take_morning', 'can_take_evening', 'can_take_night', 'can_take_rest']].values:
+                        # If there's a match, store the information
+                        matches.append((shift_employee1['employee_id'], shift_employee2['employee_id'], shift_employee1['date'], shift_employee1['give_away'],
+                                        shift_employee2['give_away']))
+    return matches
 
 # Display the data editor
 st.write("Shift Swap Submission Form")
@@ -50,18 +43,16 @@ result = st.data_editor(df, column_config=config, num_rows='dynamic', hide_index
 # Check for submission
 if st.button("Submit"):
     st.write("Data submitted!")
+
+    # Find matches among all users
+    matches = find_matches(result)
+
     
-    # Extract employee ID from the submitted data
-    employee_id = result['employee_id'].iloc[0]  
-    
-    # Store the submitted data in the submissions dictionary
-    submissions[employee_id] = result
-    
-    # Check for matches among all users
-    matches = find_matches(submissions)
     if matches:
         st.write("Shift swapping matches:")
         for match in matches:
-            st.write(match)
+            st.write(f"Employee {match[0]} and Employee {match[1]} on {match[2]} can swap shifts.")
+            st.write(f"Employee {match[0]} gives away {match[3]} and Employee {match[1]} gives away {match[4]}")
+            st.write()
     else:
         st.write("No matches found.")
