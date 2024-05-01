@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 employees_name = ['Raanan_shein','christina_shein','Tomma_shein']
 # Dropdown for selecting user name
-#user_name = st.selectbox("Enter your name:", options=employees_name)
+employee_name = st.selectbox("Enter your name:", options=employees_name)
 selected_month = st.selectbox("Select the month:",options=range(1,13))
 
 def generate_dates(year, month):
@@ -75,12 +75,14 @@ if st.button("Submit"):
     # Find matches among all users
     matches = find_matches(result)
 
-    
-    if matches:
-        st.write("Shift swapping matches:")
-        for match in matches:
-            st.write(f" {match[0]} and {match[1]} on {match[2]} can swap shifts.")
-            st.write(f" {match[0]} gives away {match[3]} and  {match[1]} gives away {match[4]}")
+# Display matches for the selected employee name
+if matches:
+    st.write("Shift swapping matches for", employee_name + ":")
+    for match in matches:
+        if match[0] == employee_name or match[1] == employee_name:
+            st.write(f"{match[0]} and {match[1]} on {match[2]} can swap shifts.")
+            st.write(f"{match[0]} gives away {match[3]} and {match[1]} gives away {match[4]}")
             st.write()
-    else:
-        st.write("No matches found.")
+else:
+    st.write("No matches found for", employee_name)
+
