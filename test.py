@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 
-employees_name = ['Raanan_shein','christina_shein','Tomma_shein']
+employees_name = ['Raanan_shein', 'Christina_shein', 'Tomma_shein']
 # Dropdown for selecting user name
 employee_name = st.selectbox("Enter your name:", options=employees_name)
-selected_month = st.selectbox("Select the month:",options=range(1,13))
+selected_month = st.selectbox("Select the month:", options=range(1, 13))
 
 def generate_dates(year, month):
     # Define the start date for the given month and year
@@ -24,8 +24,6 @@ def generate_dates(year, month):
     dates_list = [date.strftime('%Y-%m-%d') for date in dates_list]
 
     return dates_list
-
-
 
 # Function to find matches for shift swapping
 def find_matches(df):
@@ -47,16 +45,20 @@ def find_matches(df):
                         matches.append((shift_employee1['employee_name'], shift_employee2['employee_name'], shift_employee1['date'], shift_employee1['give_away'],
                                         shift_employee2['give_away']))
     return matches
-year = 2024
-month = selected_month
-dates_list = generate_dates(year, month)
+
+# Initialize list to store submissions
+submissions = []
+
+
+
+
 # Display the data editor
 st.write("Shift Swap Submission Form")
 df = pd.DataFrame(columns=['date','employee_name','give_away','can_take_early','can_take_morning','can_take_evening',
-                           'can_take_night','can_take_rest'])
+                            'can_take_night','can_take_rest'])
 shifts = ['early', 'morning', 'evening', 'night', 'rest', None]
 config = {
-    'date' : st.column_config.SelectboxColumn('date', width='small',options=dates_list),
+    'date' : st.column_config.SelectboxColumn('date', width='small',options=generate_dates(2024, selected_month)),
     'employee_name' : st.column_config.SelectboxColumn('Employee name',options=employees_name),
     'give_away' : st.column_config.SelectboxColumn('Give Away', options=shifts),
     'can_take_early' : st.column_config.SelectboxColumn('Can Take Early', options=['early',None]),
@@ -67,22 +69,23 @@ config = {
 }
 
 result = st.data_editor(df, column_config=config, num_rows='dynamic', hide_index=True)
-matches = []
-# Check for submission
+
+# Append the submission to the list of submissions
+submissions.append(result)
+
 if st.button("Submit"):
     st.write("Data submitted!")
-
-    # Find matches among all users
-    matches = find_matches(result)
-
 # Display matches for the selected employee name
-if matches:
-    st.write("Shift swapping matches for", employee_name + ":")
-    for match in matches:
-        if match[0] == employee_name or match[1] == employee_name:
-            st.write(f"{match[0]} and {match[1]} on {match[2]} can swap shifts.")
-            st.write(f"{match[0]} gives away {match[3]} and {match[1]} gives away {match[4]}")
-            st.write()
-else:
-    st.write("No matches found for", employee_name)
+    matches = []
+    for submission in submissions:
+        matches.extend(find_matches(submission))
 
+    if matches:
+        st.write("Shift swapping matches for", employee_name + ":")
+        for match in matches:
+            if match[0] == employee_name or match[1] == employee_name:
+                st.write(f"{match[0]} and {match[1]} on {match[2]} can swap shifts.")
+                st.write(f"{match[0]} gives away {match[3]} and {match[1]} gives away {match[4]}")
+                st.write()
+    else:
+        st.write("No matches found for", employee_name)
