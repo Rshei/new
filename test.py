@@ -67,7 +67,7 @@ config = {
 }
 
 result = st.data_editor(df, column_config=config, num_rows='dynamic', hide_index=True)
-
+matches = []
 # Check for submission
 if st.button("Submit"):
     st.write("Data submitted!")
